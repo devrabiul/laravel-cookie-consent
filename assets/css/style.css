@@ -214,8 +214,8 @@ html.dark {
 }
 
 html.dark .cookie-consent-links-container {
-    background: #161a1c;
-    background: -webkit-linear-gradient(0deg, #680808 0%, #a50707 100%);
+    background: #1e1e1e;
+    background: -webkit-linear-gradient(0deg, #1e1e1e 0%, #2a2a2a 100%);
     background: linear-gradient(0deg, #1e1e1e 0%, #2a2a2a 100%);
     color: #ffffff;
 }
