@@ -15,6 +15,13 @@
     --cc-button-text-color: #161a1c;
 }
 
+html.dark {
+    --cc-card-bg-color: #161a1c;
+    --cc-card-text-color: #f0f0f0;
+    --cc-button-bg-color-rgb: 194, 208, 224;
+    --cc-button-text-color: #161a1c;
+}
+
 * {
     padding: 0;
     margin: 0;
@@ -79,6 +86,7 @@
 }
 
 @media screen and (max-width: 640px) {
+
     .consent-layout-cloud,
     .consent-layout-cloud-inline {
         --cookie-consent-width: none !important;
@@ -201,6 +209,13 @@
 [theme="dark"] .cookie-consent-links-container {
     background: #1e1e1e;
     background: -webkit-linear-gradient(0deg, #1e1e1e 0%, #2a2a2a 100%);
+    background: linear-gradient(0deg, #1e1e1e 0%, #2a2a2a 100%);
+    color: #ffffff;
+}
+
+html.dark .cookie-consent-links-container {
+    background: #161a1c;
+    background: -webkit-linear-gradient(0deg, #680808 0%, #a50707 100%);
     background: linear-gradient(0deg, #1e1e1e 0%, #2a2a2a 100%);
     color: #ffffff;
 }
@@ -614,20 +629,20 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.cookie-toggle input:checked + .cookie-toggle-slider {
+.cookie-toggle input:checked+.cookie-toggle-slider {
     background-color: rgba(var(--cc-button-bg-color-rgb), var(--cc-button-bg-opacity, 1));
 }
 
-.cookie-toggle input:checked + .cookie-toggle-slider:before {
+.cookie-toggle input:checked+.cookie-toggle-slider:before {
     transform: translateX(20px);
 }
 
-.cookie-toggle input:disabled + .cookie-toggle-slider {
+.cookie-toggle input:disabled+.cookie-toggle-slider {
     background-color: #95a5a6;
     cursor: not-allowed;
 }
 
-.cookie-toggle input:focus + .cookie-toggle-slider {
+.cookie-toggle input:focus+.cookie-toggle-slider {
     box-shadow: none;
 }
 
@@ -637,14 +652,15 @@
         width: 95%;
         max-height: 85vh;
     }
-    
+
     .cookie-preferences-modal-footer {
         flex-direction: column;
     }
-    
+
     .primary-button {
         width: 100%;
     }
 }
+
 /* Modal CSS | End */
 /* ====================================== */
