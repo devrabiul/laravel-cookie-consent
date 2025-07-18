@@ -254,6 +254,45 @@ function loadFacebookPixel() {
     fbq('track', 'PageView');
 }
 ```
+---
+
+## Change Cookie Preferences Link
+
+To comply with UK ICO and GDPR regulations, users **must be able to revisit and update their cookie preferences at any time**. This package now supports that functionality out of the box.
+
+You can add a link anywhere on your site to let users open the cookie preferences modal again and update their choices:
+
+```html
+<a onclick="showHideToggleCookiePreferencesModal()">Change Cookie Preferences</a>
+```
+
+Or use the class-based approach (useful if you want to attach event handlers via JavaScript or multiple links):
+
+```html
+<a class="showHideToggleCookiePreferencesModal">Change Cookie Preferences</a>
+```
+
+### How It Works
+
+* Clicking the link will **show the cookie preferences modal**, allowing the user to change their settings.
+* This feature **resets the consent banner/modal visibility** so users can modify their choices in compliance with the ICO’s requirement.
+* The modal respects existing preferences but allows full customization and saving new preferences.
+
+---
+
+## Compliance with UK ICO and GDPR
+
+This package is designed to help your Laravel application meet the requirements of the UK Information Commissioner’s Office (ICO) and the GDPR by:
+
+* **Providing explicit, granular cookie consent** with customizable categories (e.g., necessary, analytics, marketing, preferences).
+* **Allowing users to easily revisit and change their cookie preferences** at any time using the “Change Cookie Preferences” link.
+* Supporting **clear cookie banners and modals** with translations and accessibility considerations.
+* Enabling **consent logging and event dispatching** for auditing and analytics purposes.
+
+For more details, please review the UK ICO guidance on cookies:
+[ICO Guide to Cookies and Similar Technologies](https://ico.org.uk/for-organisations/guide-to-pecr/cookies-and-similar-technologies/)
+
+---
 
 ### 🎯 Get Started Today!
 
