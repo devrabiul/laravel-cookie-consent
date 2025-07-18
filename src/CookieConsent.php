@@ -55,8 +55,11 @@ class CookieConsent
      */
     public function styles(): string
     {
-        $style = '<link rel="stylesheet" type="text/css" href="' . url('vendor/laravel-cookie-consent/assets/css/style.css') . '">';
-        return $style;
+        $stylePath = 'vendor/devrabiul/laravel-cookie-consent/css/style.css';
+        if (File::exists(public_path($stylePath))) {
+            return '<link rel="stylesheet" href="' . $this->getDynamicAsset($stylePath) . '">';
+        }
+        return '<link rel="stylesheet" href="' . url('vendor/devrabiul/laravel-cookie-consent/assets/css/style.css') . '">';
     }
 
     /**
@@ -87,13 +90,52 @@ class CookieConsent
     }
 
     /**
-     * Set the JavaScript type to 'module', used for Vite-based builds.
+     * Generate the HTML for the required scripts.
      *
-     * @return void
+     * @return string The HTML link tag for the scripts.
      */
-    public function useVite(): void
+    public function scriptsPath(): string
     {
-        $this->jsType = 'module';
+        $script = $this->scriptTag('vendor/devrabiul/laravel-cookie-consent/assets/js/script.js');
+        $defaultJsPath = 'vendor/devrabiul/laravel-cookie-consent/js/script.js';
+        if (File::exists(public_path($defaultJsPath))) {
+            $script = $this->scriptTag($defaultJsPath);
+        }
+
+        $script .= '<script src="' . route('laravel-cookie-consent.script-utils') . '"></script>';
+        return $script;
+    }
+
+    /**
+     * Generate a script tag with the given source path.
+     *
+     * @param string $src
+     * @return string
+     */
+    private function scriptTag(string $src): string
+    {
+        return '<script src="' . $this->getDynamicAsset($src) . '"></script>';
+    }
+
+    /**
+     * Resolve the dynamic asset path depending on processing directory and environment.
+     *
+     * @param string $path
+     * @return string
+     */
+    private function getDynamicAsset(string $path): string
+    {
+        if (config('laravel-toaster-magic.system_processing_directory') == 'public') {
+            $position = strpos($path, 'public/');
+            $result = $path;
+            if ($position === 0) {
+                $result = preg_replace('/public/', '', $path, 1);
+            }
+        } else {
+            $result = in_array(request()->ip(), ['127.0.0.1']) ? $path : 'public/' . $path;
+        }
+
+        return asset($result);
     }
 
     public static function getRemoveInvalidCharacters($str): array|string

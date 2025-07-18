@@ -20,7 +20,9 @@ class CookieConsentServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->updateProcessingAssetRoutes();
+        $this->updateProcessingDirectoryConfig();
+        $this->app->register(AssetsServiceProvider::class);
+
         $this->registerResources();
         if ($this->app->runningInConsole()) {
             $this->registerPublishing();
@@ -87,51 +89,33 @@ class CookieConsentServiceProvider extends ServiceProvider
     }
 
     /**
-     * Update the routes for processing asset requests.
+     * Determine and set the 'system_processing_directory' configuration value.
      *
-     * This method defines a route that serves asset files from the package.
-     * It handles the retrieval of files based on the provided path and sets the appropriate MIME type.
+     * This detects if the current PHP script is being executed from the public directory
+     * or the project root directory, or neither, and sets a config value accordingly:
+     *
+     * - 'public' if script path equals public_path()
+     * - 'root' if script path equals base_path()
+     * - 'unknown' otherwise
+     *
+     * This config can be used internally to adapt asset loading or paths.
      *
      * @return void
-     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException If the file does not exist.
      */
-    private function updateProcessingAssetRoutes(): void
+    private function updateProcessingDirectoryConfig(): void
     {
-        Route::get('/vendor/laravel-cookie-consent/assets/{path}', function ($path) {
-            $file = __DIR__ . '/../assets/' . $path;
+        $scriptPath = realpath(dirname($_SERVER['SCRIPT_FILENAME']));
+        $basePath   = realpath(base_path());
+        $publicPath = realpath(public_path());
 
-            if (file_exists($file)) {
-                // Get file extension
-                $extension = pathinfo($file, PATHINFO_EXTENSION);
+        if ($scriptPath === $publicPath) {
+            $systemProcessingDirectory = 'public';
+        } elseif ($scriptPath === $basePath) {
+            $systemProcessingDirectory = 'root';
+        } else {
+            $systemProcessingDirectory = 'unknown';
+        }
 
-                // Mime types based on file extension
-                $mimeTypes = [
-                    'css' => 'text/css',
-                    'js' => 'application/javascript',
-                    'png' => 'image/png',
-                    'jpg' => 'image/jpeg',
-                    'jpeg' => 'image/jpeg',
-                    'gif' => 'image/gif',
-                    'svg' => 'image/svg+xml',
-                    'woff' => 'font/woff',
-                    'woff2' => 'font/woff2',
-                    'ttf' => 'font/ttf',
-                    'otf' => 'font/otf',
-                    'eot' => 'application/vnd.ms-fontobject',
-                    'json' => 'application/json',
-                    'ico' => 'image/x-icon',
-                ];
-
-                // Default to application/octet-stream if the extension is not recognized
-                $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
-
-                return Response::file($file, [
-                    'Content-Type' => $mimeType,
-                    'Access-Control-Allow-Origin' => '*',
-                ]);
-            }
-
-            abort(404);
-        })->where('path', '.*');
+        config(['laravel-cookie-consent.system_processing_directory' => $systemProcessingDirectory]);
     }
 }
