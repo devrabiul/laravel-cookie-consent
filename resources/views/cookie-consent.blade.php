@@ -127,8 +127,6 @@
         const preferences = getCookiePreferences();
         if (!preferences) return;
 
-        console.log('Loading services based on preferences:', preferences);
-
         @foreach ($cookieConfig['cookie_categories'] as $category => $details)
             @if(isset($details['js_action']))
                 try {
