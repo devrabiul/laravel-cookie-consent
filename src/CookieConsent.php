@@ -125,7 +125,7 @@ class CookieConsent
      */
     private function getDynamicAsset(string $path): string
     {
-        if (config('laravel-toaster-magic.system_processing_directory') == 'public') {
+        if (self::getProcessingDirectoryConfig() == 'public') {
             $position = strpos($path, 'public/');
             $result = $path;
             if ($position === 0) {
@@ -136,6 +136,24 @@ class CookieConsent
         }
 
         return asset($result);
+    }
+
+
+    private function getProcessingDirectoryConfig(): string
+    {
+        $scriptPath = realpath(dirname($_SERVER['SCRIPT_FILENAME']));
+        $basePath   = realpath(base_path());
+        $publicPath = realpath(public_path());
+
+        if ($scriptPath === $publicPath) {
+            $systemProcessingDirectory = 'public';
+        } elseif ($scriptPath === $basePath) {
+            $systemProcessingDirectory = 'root';
+        } else {
+            $systemProcessingDirectory = 'unknown';
+        }
+
+        return $systemProcessingDirectory;
     }
 
     public static function getRemoveInvalidCharacters($str): array|string
