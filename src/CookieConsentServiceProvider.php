@@ -104,7 +104,7 @@ class CookieConsentServiceProvider extends ServiceProvider
      */
     private function updateProcessingDirectoryConfig(): void
     {
-        $scriptPath = realpath(dirname($_SERVER['SCRIPT_FILENAME']));
+        $scriptPath = realpath(dirname($_SERVER['SCRIPT_FILENAME'] ?? '.'));
         $basePath   = realpath(base_path());
         $publicPath = realpath(public_path());
 
