@@ -141,7 +141,7 @@ class CookieConsent
 
     private function getProcessingDirectoryConfig(): string
     {
-        $scriptPath = realpath(dirname($_SERVER['SCRIPT_FILENAME']));
+        $scriptPath = realpath(dirname($_SERVER['SCRIPT_FILENAME'] ?? '.'));
         $basePath   = realpath(base_path());
         $publicPath = realpath(public_path());
 
