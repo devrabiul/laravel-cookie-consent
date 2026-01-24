@@ -26,9 +26,9 @@ capabilities.
 
 ## 🚀 Live Demo
 
-👉 [Try the Live Demo](https://packages.rixetbd.com/devrabiul/laravel-cookie-consent)
+👉 [Try the Live Demo](https://rixetbd.com/devrabiul/laravel-cookie-consent?vendor=devrabiul)
 
-![Live Demo Thumbnail](https://packages.rixetbd.com/storage/app/public/package/devrabiul/laravel-cookie-consent.webp)
+![Live Demo Thumbnail](https://rixetbd.com/storage/app/public/package/devrabiul/laravel-cookie-consent.webp)
 
 ---
 
