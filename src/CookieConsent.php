@@ -125,23 +125,7 @@ class CookieConsent
      */
     private function getDynamicAsset(string $path): string
     {
-        if (config('laravel-cookie-consent.system_processing_directory') == 'public') {
-            $position = strpos($path, 'public/');
-            $result = $path;
-            if ($position === 0) {
-                $result = preg_replace('/public/', '', $path, 1);
-            }
-        } else if (
-            (str_contains(realpath(public_path()), 'public\public') ||
-            str_contains(realpath(public_path()), 'public/public')) &&
-            PHP_OS_FAMILY === 'Windows'
-        ) {
-            $result = 'public/' . $path;
-        } else {
-            $result = in_array(request()->ip(), ['127.0.0.1']) && (config('laravel-cookie-consent.system_processing_directory') != 'root') ? $path : 'public/' . $path;
-        }
-
-        return asset($result);
+        return asset($path);
     }
 
     public static function getRemoveInvalidCharacters($str): array|string
