@@ -13,14 +13,16 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cookie Consent Prefix
-    |--------------------------------------------------------------------------
-    | This setting determines whether the cookie consent banner should be displayed.
-    | Set this value to 'true' to show the banner or 'false' to disable it.
-    | You can control this via the .env file using APP_NAME.
-    */
+    /**
+     * Cookie Consent Prefix
+     *
+     * This setting determines whether the cookie consent banner should be displayed.
+     * Set this value to 'true' to show the banner or 'false' to disable it.
+     * You can control this via the .env file using APP_NAME.
+     * 
+     * @default Laravel_App
+     * @env APP_NAME
+     */
     'cookie_prefix' => env('APP_NAME', 'Laravel_App'),
 
     /**
@@ -58,13 +60,13 @@ return [
      *
      * @default 'bar-inline'
      * @env COOKIE_CONSENT_MODAL_LAYOUT
-     * @option box - Small floating box
-     * @option box-inline - Small floating box positioned inline
-     * @option box-wide - Larger floating box
-     * @option cloud - Cloud-like floating consent box
+     * @option box          - Small floating box
+     * @option box-inline   - Small floating box positioned inline
+     * @option box-wide     - Larger floating box
+     * @option cloud        - Cloud-like floating consent box
      * @option cloud-inline - Compact cloud-style box
-     * @option bar - Simple bar at top or bottom
-     * @option bar-inline - Compact inline bar
+     * @option bar          - Simple bar at top or bottom
+     * @option bar-inline   - Compact inline bar
      */
     'consent_modal_layout' => env('COOKIE_CONSENT_MODAL_LAYOUT', 'bar'),
 
@@ -116,22 +118,23 @@ return [
      * @default 'default'
      * @env COOKIE_CONSENT_THEME
      * @option default - Standard theme
-     * @option dark - Dark mode theme
-     * @option light - Light mode theme
-     * @option custom - Custom styles (requires additional CSS)
+     * @option dark    - Dark mode theme
+     * @option light   - Light mode theme
+     * @option custom  - Custom styles (requires additional CSS)
      */
     'theme' => env('COOKIE_CONSENT_THEME', 'default'),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Theme Preset
-    |--------------------------------------------------------------------------
-    | basic        - Default neutral theme
-    | modern-blue  - Professional blue style
-    | trust-green  - Privacy-friendly green style
-    | soft-neutral - Minimal soft gray theme
-    | dark         - Dark theme
-    */
+    /**
+     * Theme Preset
+     *
+     * @default basic
+     * @env COOKIE_CONSENT_THEME_PRESET
+     * @option basic        - Default neutral theme
+     * @option modern-blue  - Professional blue style
+     * @option trust-green  - Privacy-friendly green style
+     * @option soft-neutral - Minimal soft gray theme
+     * @option dark         - Dark theme
+     */
     'theme_preset' => env('COOKIE_CONSENT_THEME_PRESET', 'basic'),
 
     /**
