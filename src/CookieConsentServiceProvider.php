@@ -20,7 +20,10 @@ class CookieConsentServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->updateProcessingDirectoryConfig();
-        $this->app->register(AssetsServiceProvider::class);
+
+        if (! $this->app->runningInConsole()) {
+            $this->app->register(AssetsServiceProvider::class);
+        }
 
         $this->registerResources();
         if ($this->app->runningInConsole()) {
