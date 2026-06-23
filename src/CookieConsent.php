@@ -92,29 +92,37 @@ class CookieConsent
     /**
      * Generate the HTML for the required scripts.
      *
-     * @return string The HTML link tag for the scripts.
+     * The script is loaded with the `defer` attribute so it does not block
+     * page rendering. The `/laravel-cookie-consent/script-utils` route is no
+     * longer requested because it only served an empty `window.onload` stub
+     * that had no effect, while still adding a full HTTP round-trip to the
+     * browser's critical request chain.
+     *
+     * @return string The HTML script tag for the cookie consent JS.
      */
     public function scriptsPath(): string
     {
-        $script = $this->scriptTag('vendor/devrabiul/laravel-cookie-consent/assets/js/script.js');
         $defaultJsPath = 'packages/devrabiul/laravel-cookie-consent/js/script.js';
         if (File::exists(public_path($defaultJsPath))) {
-            $script = $this->scriptTag($defaultJsPath);
+            return $this->scriptTag($defaultJsPath);
         }
 
-        $script .= '<script src="' . route('laravel-cookie-consent.script-utils') . '"></script>';
-        return $script;
+        return $this->scriptTag('vendor/devrabiul/laravel-cookie-consent/assets/js/script.js');
     }
 
     /**
-     * Generate a script tag with the given source path.
+     * Generate a deferred script tag with the given source path.
+     *
+     * Using `defer` ensures the script is fetched in parallel with HTML
+     * parsing and executed only after the document is ready, without
+     * blocking the critical rendering path.
      *
      * @param string $src
      * @return string
      */
     private function scriptTag(string $src): string
     {
-        return '<script src="' . $this->getDynamicAsset($src) . '"></script>';
+        return '<script src="' . $this->getDynamicAsset($src) . '" defer></script>';
     }
 
     /**
