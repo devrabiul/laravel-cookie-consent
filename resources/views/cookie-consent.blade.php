@@ -132,11 +132,34 @@
 
 <script type="text/javascript">
     "use strict";
-    // Load analytics/tracking services based on preferences
 
-    // Then define your service loader
+    /**
+     * Fallback preferences reader used when script.js has not yet exposed
+     * window.getCookiePreferences via its own DOMContentLoaded listener.
+     *
+     * Because script.js is loaded with `defer`, both it and this inline block
+     * register DOMContentLoaded listeners before the event fires. Listener
+     * order is registration order, so this inline listener runs first and
+     * window.getCookiePreferences is not yet available. This self-contained
+     * implementation avoids that race without requiring a second HTTP request.
+     */
+    function _getConsentPreferences() {
+        const consentRoot = document.querySelector('.cookie-consent-root');
+        const prefix = consentRoot?.getAttribute('data-cookie-prefix') || 'cookie_consent';
+        const name = prefix + '_preferences=';
+        const decoded = decodeURIComponent(document.cookie);
+        for (let part of decoded.split(';')) {
+            part = part.trim();
+            if (part.indexOf(name) === 0) {
+                try { return JSON.parse(part.substring(name.length)); } catch (e) {}
+            }
+        }
+        return null;
+    }
+
+    // Load analytics/tracking services based on preferences
     window.loadCookieCategoriesEnabledServices = function () {
-        const preferences = getCookiePreferences();
+        const preferences = (typeof getCookiePreferences === 'function' ? getCookiePreferences() : null) ?? _getConsentPreferences();
         if (!preferences) return;
 
         @foreach ($cookieConfig['cookie_categories'] as $category => $details)
