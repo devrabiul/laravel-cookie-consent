@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalClose = document.querySelector('.cookie-preferences-modal-close');
     const modalSave = document.querySelector('.cookie-preferences-save');
 
+    // Element that had focus before the modal opened, so focus can be restored on close
+    let lastFocusedElement = null;
+
     // Initialize banner
     if (consentRoot) {
         consentRoot.classList.remove('cookie-consent-hide');
@@ -60,22 +63,40 @@ document.addEventListener('DOMContentLoaded', function () {
     // Modal controls
     function showModal() {
         if (!modal) return;
+        lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         document.body.classList.add('modal-open');
         modal.setAttribute('aria-hidden', 'false');
         modal.classList.add('is-visible');
+        preferencesBtn?.setAttribute('aria-expanded', 'true');
 
         const savedPreferences = getCookiePreferences();
         document.querySelectorAll('.cookie-toggle input:not([disabled])').forEach(toggle => {
             const category = toggle.dataset.category;
             toggle.checked = savedPreferences ? savedPreferences[category] !== false : true;
         });
+
+        // Move focus into the modal so keyboard/AT users land on the dialog
+        const focusTarget = modal.querySelector('[autofocus], .cookie-preferences-modal-close, button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        focusTarget?.focus();
     }
 
     function hideModal() {
         if (!modal) return;
+        // Focus must leave the modal before it becomes aria-hidden, otherwise assistive
+        // technology focus stays trapped inside a hidden element (WAI-ARIA aria-hidden rule).
+        if (modal.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
         modal.setAttribute('aria-hidden', 'true');
         modal.classList.remove('is-visible');
         document.body.classList.remove('modal-open');
+        preferencesBtn?.setAttribute('aria-expanded', 'false');
+
+        // Restore focus to the element that opened the modal
+        if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+            lastFocusedElement.focus();
+        }
+        lastFocusedElement = null;
     }
 
     function setAllPreferences(accept) {
@@ -179,27 +200,12 @@ document.addEventListener('DOMContentLoaded', function () {
     window.getCookiePreferences = getCookiePreferences;
 
     function showHideToggleCookiePreferencesModal() {
-        const modal = document.querySelector('.cookie-preferences-modal');
         if (!modal) return;
 
-        const isVisible = modal.classList.contains('is-visible');
-        if (isVisible) {
-            // Hide modal
-            modal.setAttribute('aria-hidden', 'true');
-            modal.classList.remove('is-visible');
-            document.body.classList.remove('modal-open');
+        if (modal.classList.contains('is-visible')) {
+            hideModal();
         } else {
-            // Show modal
-            modal.setAttribute('aria-hidden', 'false');
-            modal.classList.add('is-visible');
-            document.body.classList.add('modal-open');
-
-            // Initialize toggles if needed
-            const savedPreferences = window.getCookiePreferences?.();
-            document.querySelectorAll('.cookie-toggle input:not([disabled])').forEach(toggle => {
-                const category = toggle.dataset.category;
-                toggle.checked = savedPreferences ? savedPreferences[category] !== false : true;
-            });
+            showModal();
         }
     }
 
