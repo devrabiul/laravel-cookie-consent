@@ -4,7 +4,6 @@ namespace Devrabiul\CookieConsent;
 
 use Exception;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Cache;
 
 class CookieConsentServiceProvider extends ServiceProvider
 {
@@ -103,21 +102,35 @@ class CookieConsentServiceProvider extends ServiceProvider
      */
     private function updateProcessingDirectoryConfig(): void
     {
+        // Resolved directly on each boot instead of via persistent cache. The value is a
+        // few cheap realpath() comparisons and is inherently runtime-specific — it depends
+        // on $_SERVER['SCRIPT_FILENAME'], which differs across HTTP, CLI, queue workers,
+        // the scheduler and Octane. Caching it provided no real benefit while causing:
+        // cache I/O on every request, unbounded cache-key growth, crashes when the cache
+        // backend is unavailable, and QueryExceptions during `package:discover` on fresh
+        // installs using CACHE_STORE=database before migrations run. See issues #11 and #14.
         $script = $_SERVER['SCRIPT_FILENAME'] ?? getcwd() ?? '';
-        $cacheKey = 'SYSTEM_DOMAIN_POINTED_DIRECTORY_' . md5($script);
-        $systemProcessingDirectory = Cache::rememberForever($cacheKey, function () use ($script) {
-            $scriptPath = realpath(dirname($script));
-            $basePath   = realpath(base_path());
-            $publicPath = realpath(public_path());
 
-            if ($scriptPath === $publicPath) {
-                return 'public';
-            } elseif ($scriptPath === $basePath) {
-                return 'root';
-            }
-            return 'unknown';
-        });
+        config(['laravel-cookie-consent.system_processing_directory' => $this->resolveProcessingDirectory($script)]);
+    }
 
-        config(['laravel-cookie-consent.system_processing_directory' => $systemProcessingDirectory]);
+    /**
+     * Resolve where the current PHP script is being executed from.
+     *
+     * @param string $script The executing script path.
+     * @return string One of 'public', 'root', or 'unknown'.
+     */
+    private function resolveProcessingDirectory(string $script): string
+    {
+        $scriptPath = realpath(dirname($script));
+        $basePath   = realpath(base_path());
+        $publicPath = realpath(public_path());
+
+        if ($scriptPath === $publicPath) {
+            return 'public';
+        } elseif ($scriptPath === $basePath) {
+            return 'root';
+        }
+        return 'unknown';
     }
 }
