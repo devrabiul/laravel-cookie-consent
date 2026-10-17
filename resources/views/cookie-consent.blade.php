@@ -3,10 +3,16 @@
     cookie-consent-hide
     {{ $cookieConfig['disable_page_interaction'] ? 'cookie-disable-interaction' : '' }}
     consent-layout-{{ $cookieConfig['consent_modal_layout'] ?? 'bar' }}
-    theme-{{ $cookieConfig['theme'] ?? 'default' }}"
-     data-cookie-prefix="{{ Str::slug($cookieConfig['cookie_prefix']) }}_{{ date('Y') }}"
-     data-cookie-lifetime="{{ $cookieConfig['cookie_lifetime'] }}"
-     data-reject-lifetime="{{ $cookieConfig['reject_lifetime'] }}"
+    theme-{{ $cookieConfig['theme'] ?? 'default' }}
+    {{ $cardBgColor ? 'cookie-consent-custom-bg' : '' }}"
+     data-cookie-prefix="{{ $consentCookieName }}"
+     data-consent-version="{{ $consentVersion }}"
+     data-cookie-lifetime="{{ $cookieLifetime }}"
+     data-reject-lifetime="{{ $rejectLifetime }}"
+     data-legacy-cookie-prefix="{{ $legacyCookieName }}"
+     data-legacy-consent-version="{{ $legacyConsentVersion }}"
+     @if ($googleConsentTypes !== null) data-google-consent-mode="{{ json_encode((object) $googleConsentTypes) }}" @endif
+     @if ($cardStyle !== '') style="{{ $cardStyle }}" @endif
      role="dialog"
      aria-modal="true"
      aria-label="Cookie consent banner"
@@ -41,14 +47,14 @@
         </div>
     </div>
 
-    @if (isset($cookieConfig['policy_links']) && count($cookieConfig['policy_links']) > 0)
+    @if (count($policyLinks) > 0)
         <div class="cookie-consent-links-container">
             <ul class="cookie-consent-links-list">
-                @foreach ($cookieConfig['policy_links'] as $policyLinks)
+                @foreach ($policyLinks as $policyLink)
                     <li class="cookie-consent-link-item">
-                        <a target="_blank" rel="noopener noreferrer" href="{{ $policyLinks['link'] }}"
+                        <a target="_blank" rel="noopener noreferrer" href="{{ $policyLink['link'] }}"
                            class="cookie-consent-link">
-                            {{ $policyLinks['text'] }}
+                            {{ $policyLink['text'] }}
                         </a>
                     </li>
                 @endforeach
@@ -58,7 +64,8 @@
 </div>
 
 <!-- Cookie Preferences Modal -->
-<div id="cookie-preferences-modal" class="cookie-preferences-modal" aria-hidden="true">
+<div id="cookie-preferences-modal" class="cookie-preferences-modal" aria-hidden="true"
+     @if ($cardStyle !== '') style="{{ $cardStyle }}" @endif>
     <div class="cookie-preferences-modal-overlay" tabindex="-1"></div>
     <div class="cookie-preferences-modal-content" role="document">
         <div class="cookie-preferences-modal-header">
@@ -116,6 +123,27 @@
     </div>
 </div>
 
+@if ($floatingButton)
+    <!-- Floating Cookie Settings Button (shown once the visitor has made a choice) -->
+    <button type="button"
+            class="cookie-consent-floating-button cookie-consent-floating-{{ $floatingButton['position'] }}"
+            aria-label="{{ $floatingButton['label'] }}"
+            title="{{ $floatingButton['label'] }}"
+            aria-controls="cookie-preferences-modal"
+            aria-expanded="false"
+            @if ($cardStyle !== '') style="{{ $cardStyle }}" @endif
+            hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21.95 12.7A10 10 0 1 1 11.3 2.05a3 3 0 0 0 3.65 3.65 3 3 0 0 0 3.35 3.35 3 3 0 0 0 3.65 3.65Z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <circle cx="8.5" cy="9.5" r="1.25" fill="currentColor"/>
+            <circle cx="15.5" cy="15" r="1.25" fill="currentColor"/>
+            <circle cx="9" cy="15.5" r="1.25" fill="currentColor"/>
+            <circle cx="12.5" cy="12" r="0.9" fill="currentColor"/>
+        </svg>
+    </button>
+@endif
+
 {!! CookieConsent::scriptsPath() !!}
 
 @php
@@ -124,9 +152,7 @@
 
 @if (isset($cookieConsentThemePreset) && !is_null($cookieConsentThemePreset))
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.documentElement.setAttribute('cookie-consent-theme-preset', @json($cookieConsentThemePreset));
-    });
+    document.documentElement.setAttribute('cookie-consent-theme-preset', @json($cookieConsentThemePreset));
 </script>
 @endif
 
@@ -134,7 +160,9 @@
     "use strict";
     // Load analytics/tracking services based on preferences
 
-    // Then define your service loader
+    // Then define your service loader. It runs on page load, after every SPA navigation
+    // and after each consent decision; each js_action is called at most once per page.
+    window.cookieConsentLoadedActions = window.cookieConsentLoadedActions || {};
     window.loadCookieCategoriesEnabledServices = function () {
         const preferences = getCookiePreferences();
         if (!preferences) return;
@@ -142,9 +170,10 @@
         @foreach ($cookieConfig['cookie_categories'] as $category => $details)
             @if(isset($details['js_action']))
                 try {
-                    if (preferences?.{!! Str::slug($category) !!}) {
-                        const action = {!! json_encode($details['js_action']) !!};
-                        if (typeof window[action] === "function") {
+                    if (preferences[@json((string) $category)] === true) {
+                        const action = @json($details['js_action']);
+                        if (typeof window[action] === "function" && !window.cookieConsentLoadedActions[action]) {
+                            window.cookieConsentLoadedActions[action] = true;
                             window[action]();
                         }
                     }
@@ -154,12 +183,4 @@
             @endif
         @endforeach
     }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        try {
-            loadCookieCategoriesEnabledServices();
-        } catch (e) {
-            console.info(e);
-        }
-    })
 </script>

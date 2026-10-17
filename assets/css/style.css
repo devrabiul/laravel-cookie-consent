@@ -239,6 +239,13 @@
     color: #ffffff;
 }
 
+/* Custom card_bg_color: the links strip follows the card color (slightly darker where color-mix() is supported) */
+.cookie-consent-root.cookie-consent-custom-bg .cookie-consent-links-container {
+    background: var(--cc-card-bg-color);
+    background: linear-gradient(0deg, var(--cc-card-bg-color) 0%, color-mix(in srgb, var(--cc-card-bg-color) 94%, #000000) 100%);
+    color: var(--cc-card-text-color);
+}
+
 .cookie-consent-links-container ul {
     list-style: none;
     padding: 0;
@@ -682,3 +689,60 @@
 }
 /* Modal CSS | End */
 /* ====================================== */
+/* Floating "Cookie settings" button */
+.cookie-consent-floating-button {
+    position: fixed;
+    bottom: 20px;
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--cc-border-color, rgba(0, 0, 0, .08));
+    border-radius: 50%;
+    background: var(--cc-card-bg-color);
+    color: var(--cc-card-text-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.cookie-consent-floating-button[hidden] {
+    display: none;
+}
+
+.cookie-consent-floating-bottom-left {
+    left: 20px;
+}
+
+.cookie-consent-floating-bottom-right {
+    right: 20px;
+}
+
+.cookie-consent-floating-button:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .2);
+}
+
+.cookie-consent-floating-button:focus-visible {
+    outline: 2px solid rgba(var(--cc-button-bg-color-rgb), 1);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cookie-consent-floating-button {
+        transition: none;
+    }
+
+    .cookie-consent-floating-button:hover {
+        transform: none;
+    }
+}
+
+@media print {
+    .cookie-consent-floating-button {
+        display: none;
+    }
+}

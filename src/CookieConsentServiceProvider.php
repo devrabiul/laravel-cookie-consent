@@ -3,6 +3,7 @@
 namespace Devrabiul\CookieConsent;
 
 use Exception;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class CookieConsentServiceProvider extends ServiceProvider
@@ -45,9 +46,24 @@ class CookieConsentServiceProvider extends ServiceProvider
 
     private function registerResources(): void
     {
-        $this->loadRoutesFrom(__DIR__ . '/../routes/laravel-cookie-consent.php');
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'laravel-cookie-consent');
+        $this->registerBladeDirectives();
         // $this->commands($this->registerCommands());
+    }
+
+    /**
+     * Register the @cookieConsent('category') ... @endcookieConsent Blade directive.
+     *
+     * The condition is evaluated on every render (not at view compile time), so it is
+     * safe with cached views. It also provides @elsecookieConsent.
+     *
+     * @return void
+     */
+    private function registerBladeDirectives(): void
+    {
+        Blade::if('cookieConsent', function ($category) {
+            return is_string($category) && $this->app->make('CookieConsent')->hasConsent($category);
+        });
     }
 
     /**

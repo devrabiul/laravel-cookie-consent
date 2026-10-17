@@ -17,11 +17,31 @@ return [
     |--------------------------------------------------------------------------
     | Cookie Consent Prefix
     |--------------------------------------------------------------------------
-    | This setting determines whether the cookie consent banner should be displayed.
-    | Set this value to 'true' to show the banner or 'false' to disable it.
-    | You can control this via the .env file using APP_NAME.
+    | Used to name the consent cookies: "{slug}_consent" (status) and
+    | "{slug}_consent_preferences" (versioned consent record), where {slug} is
+    | Str::slug() of this value. Changing it discards all existing consent.
+    | Defaults to APP_NAME.
     */
     'cookie_prefix' => env('APP_NAME', 'Laravel_App'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Consent Version
+    |--------------------------------------------------------------------------
+    | Identifies the version of your cookie policy that visitors consent to.
+    | It is stored with each visitor's consent; when you change this value,
+    | existing consent is treated as outdated and the banner is shown again.
+    |
+    | This is NOT the package version. Keep it unchanged when you update the
+    | package; otherwise every visitor is asked for consent again.
+    |
+    | Increase it when your cookie usage materially changes, e.g. you add a
+    | category, start using a new third-party service, or change your cookie
+    | policy. Do not change it for cosmetic edits (texts, colors, layout).
+    |
+    | Consent given before consent versioning existed counts as version "1.0".
+    */
+    'consent_version' => env('COOKIE_CONSENT_VERSION', '1.0'),
 
     /**
      * Enable or disable the cookie consent banner
@@ -48,7 +68,8 @@ return [
     /**
      * Cookie lifetime in days
      *
-     * Defines how long the consent cookie should persist in the user's browser.
+     * Defines how long an accepted or customised consent (both the status and the
+     * preferences cookie) persists in the user's browser. Must be a positive number.
      *
      * @default 365
      * @env COOKIE_CONSENT_LIFETIME
@@ -58,7 +79,8 @@ return [
     /**
      * Rejection cookie lifetime in days
      *
-     * Specifies how long the rejection cookie should persist when users decline cookies.
+     * Specifies how long the consent cookies persist when users reject cookies.
+     * After it expires the banner is shown again. Must be a positive number.
      *
      * @default 7
      * @env COOKIE_REJECT_LIFETIME
@@ -147,6 +169,88 @@ return [
     | dark         - Dark theme
     */
     'theme_preset' => env('COOKIE_CONSENT_THEME_PRESET', 'basic'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Card Background Color
+    |--------------------------------------------------------------------------
+    | Background color of the consent banner and the preferences modal.
+    | Overrides the color of the theme and theme preset; the policy links strip
+    | follows it too. Leave null to use the theme's color.
+    |
+    | Accepts hex (#fff, #ffffff, #ffffffcc), rgb()/rgba(), hsl()/hsla() or a
+    | named color (e.g. "white"). Invalid values are ignored.
+    |
+    | Example: '#f8fafc'
+    */
+    'card_bg_color' => env('COOKIE_CONSENT_CARD_BG_COLOR', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Card Text Color
+    |--------------------------------------------------------------------------
+    | Text color of the consent banner and the preferences modal. Overrides
+    | the color of the theme and theme preset. Leave null to use the theme's
+    | color. Accepts the same formats as card_bg_color.
+    |
+    | Set it together with card_bg_color so the text stays readable.
+    |
+    | Example: '#0f172a'
+    */
+    'card_text_color' => env('COOKIE_CONSENT_CARD_TEXT_COLOR', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Floating Cookie Settings Button
+    |--------------------------------------------------------------------------
+    | A small button fixed to a corner of the page that reopens the cookie
+    | preferences, so visitors can change or withdraw consent at any time
+    | (GDPR Art. 7(3), UK ICO). It is shown only after the visitor has made a
+    | choice, and uses the card colors.
+    |
+    | position - bottom-left | bottom-right
+    | label    - accessible name and tooltip of the button
+    */
+    'floating_button' => [
+        'enabled' => env('COOKIE_CONSENT_FLOATING_BUTTON', false),
+        'position' => env('COOKIE_CONSENT_FLOATING_BUTTON_POSITION', 'bottom-left'),
+        'label' => 'Cookie settings',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google Consent Mode v2
+    |--------------------------------------------------------------------------
+    | Sends the visitor's choices to Google tags (gtag.js, Google Tag Manager,
+    | Google Analytics 4, Google Ads). The defaults ("denied") are output by
+    | {!! CookieConsent::styles() !!}, which must therefore be placed in <head>
+    | ABOVE your Google tag / GTM snippet.
+    |
+    | consent_types      - Google consent type => cookie category it follows.
+    |                      Locked categories (e.g. necessary) are always granted.
+    | wait_for_update    - Milliseconds Google tags wait for the consent update.
+    | ads_data_redaction - Redact ad click identifiers while ad_storage is denied.
+    | url_passthrough    - Pass ad click information through URLs while
+    |                      ad_storage is denied.
+    |
+    | A "cookie_consent_update" dataLayer event is pushed on every decision, for
+    | use as a Google Tag Manager trigger.
+    */
+    'google_consent_mode' => [
+        'enabled' => env('COOKIE_CONSENT_GOOGLE_CONSENT_MODE', false),
+        'wait_for_update' => 500,
+        'ads_data_redaction' => true,
+        'url_passthrough' => false,
+        'consent_types' => [
+            'ad_storage' => 'marketing',
+            'ad_user_data' => 'marketing',
+            'ad_personalization' => 'marketing',
+            'analytics_storage' => 'analytics',
+            'functionality_storage' => 'preferences',
+            'personalization_storage' => 'preferences',
+            'security_storage' => 'necessary',
+        ],
+    ],
 
     /**
      * Cookie banner title text
@@ -248,17 +352,21 @@ return [
      *
      * Links to legal documents displayed in the cookie banner.
      *
+     * Links may be absolute URLs or paths relative to your application; paths are
+     * resolved with url() when the banner is rendered. Entries with an empty text or
+     * link are not displayed.
+     *
      * @item text - Display text for the link
-     * @item link - URL to the policy document
+     * @item link - URL or path to the policy document
      */
     'policy_links' => [
         [
             'text' => 'Privacy Policy',
-            'link' => env('COOKIE_CONSENT_PRIVACY_POLICY_URL', '') ?? url('privacy-policy')
+            'link' => env('COOKIE_CONSENT_PRIVACY_POLICY_URL') ?: 'privacy-policy',
         ],
         [
             'text' => 'Terms and Conditions',
-            'link' => env('COOKIE_CONSENT_TERMS_URL', '') ?? url('terms-and-conditions')
+            'link' => env('COOKIE_CONSENT_TERMS_URL') ?: 'terms-and-conditions',
         ],
     ],
 ];

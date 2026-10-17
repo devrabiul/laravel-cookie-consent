@@ -11,10 +11,37 @@
             "email": "devrabiul@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "php": "^8.0",
+        "illuminate/config": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "illuminate/filesystem": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "illuminate/http": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "illuminate/session": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "illuminate/view": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0|^10.0|^11.0",
+        "pestphp/pest": "^1.23|^2.0|^3.0|^4.0|^5.0"
+    },
     "autoload": {
         "psr-4": {
             "Devrabiul\\CookieConsent\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Devrabiul\\CookieConsent\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:js": "node --test tests/js/consent.test.mjs"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
         }
     },
     "extra": {

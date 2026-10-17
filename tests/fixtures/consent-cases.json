@@ -1,0 +1,197 @@
+{
+    "_comment": "Shared by the PHP (tests/Feature/ConsentCasesTest.php) and JavaScript (tests/js/consent.test.mjs) suites so both sides agree on consent validity. Cookie name tokens: {consent}, {preferences}, {legacy}, {legacy_preferences}, {legacy_previous}, {legacy_previous_preferences}. A cookie is either 'raw' (decoded value) or 'json' (encoded as JSON; 'age_days' becomes 'timestamp' relative to now, 'padding' adds a filler field of that length).",
+    "cookie_prefix": "Laravel_App",
+    "categories": {
+        "necessary": {"enabled": true, "locked": true},
+        "analytics": {"enabled": true, "locked": false},
+        "marketing": {"enabled": true, "locked": false},
+        "preferences": {"enabled": false, "locked": false}
+    },
+    "cases": [
+        {
+            "name": "no cookies",
+            "cookies": {},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "accepted with granular choices",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 10, "categories": {"necessary": true, "analytics": true, "marketing": false}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": true, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "disabled category is never consented even if the cookie says so",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": {"necessary": true, "analytics": true, "marketing": true, "preferences": true}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": true, "marketing": true, "preferences": false}
+        },
+        {
+            "name": "locked category is consented even if stored as false",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": {"necessary": false, "analytics": false}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "rejected grants only locked categories, even if tampered",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "rejected", "age_days": 1, "categories": {"necessary": true, "analytics": true, "marketing": true}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "outdated consent version",
+            "cookies": {"{preferences}": {"json": {"version": "0.9", "status": "accepted", "age_days": 1, "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "bumped consent version invalidates 1.0 consent",
+            "config": {"consent_version": "2.0"},
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "consent matching a custom version",
+            "config": {"consent_version": "2024-06"},
+            "cookies": {"{preferences}": {"json": {"version": "2024-06", "status": "accepted", "age_days": 1, "categories": {"analytics": true}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": true, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "accepted consent older than cookie_lifetime",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 366, "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "custom cookie_lifetime exceeded",
+            "config": {"cookie_lifetime": 30},
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 31, "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "custom cookie_lifetime not yet exceeded",
+            "config": {"cookie_lifetime": 30},
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 29, "categories": {"analytics": true}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": true, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "rejection older than reject_lifetime",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "rejected", "age_days": 8, "categories": {"necessary": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "rejection within reject_lifetime",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "rejected", "age_days": 6, "categories": {"necessary": true}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "timestamp far in the future",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": -2, "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "timestamp slightly in the future (clock skew)",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": -0.5, "categories": {"analytics": true}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": true, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "malformed JSON",
+            "cookies": {"{preferences}": {"raw": "{\"version\":\"1.0\",\"status\":"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "plain string value",
+            "cookies": {"{preferences}": {"raw": "accepted"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "pre-versioning preferences format under the new name",
+            "cookies": {"{preferences}": {"raw": "{\"necessary\":true,\"analytics\":true}"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "top-level JSON array",
+            "cookies": {"{preferences}": {"raw": "[\"1.0\",\"accepted\"]"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "categories as JSON array",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": []}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "empty categories object",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": {}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "unknown status",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "maybe", "age_days": 1, "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "numeric version",
+            "cookies": {"{preferences}": {"json": {"version": 1, "status": "accepted", "age_days": 1, "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "string timestamp",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "timestamp": "1760000000", "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "missing timestamp",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "categories": {"analytics": true}}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "non-boolean category value",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": {"analytics": "true", "marketing": 1}}}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "oversized cookie value",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": {"analytics": true}, "padding": 5000}}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "status cookie alone is not consent",
+            "cookies": {"{consent}": {"raw": "accepted"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "legacy accepted consent is honoured at version 1.0",
+            "cookies": {"{legacy}": {"raw": "accepted"}, "{legacy_preferences}": {"raw": "{\"necessary\":true,\"analytics\":true,\"marketing\":false}"}},
+            "expected": {"valid": true, "necessary": true, "analytics": true, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "legacy rejected consent is honoured at version 1.0",
+            "cookies": {"{legacy}": {"raw": "rejected"}, "{legacy_preferences}": {"raw": "{\"necessary\":true,\"analytics\":false,\"marketing\":false}"}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "legacy consent with malformed preferences keeps the decision only",
+            "cookies": {"{legacy}": {"raw": "accepted"}, "{legacy_preferences}": {"raw": "{broken"}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "legacy consent is outdated once the version changes",
+            "config": {"consent_version": "2.0"},
+            "cookies": {"{legacy}": {"raw": "accepted"}, "{legacy_preferences}": {"raw": "{\"necessary\":true,\"analytics\":true}"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "legacy consent from a previous year has expired",
+            "cookies": {"{legacy_previous}": {"raw": "accepted"}, "{legacy_previous_preferences}": {"raw": "{\"necessary\":true,\"analytics\":true}"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "legacy consent with unknown status",
+            "cookies": {"{legacy}": {"raw": "yes"}, "{legacy_preferences}": {"raw": "{\"analytics\":true}"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "invalid current record does not fall back to legacy consent",
+            "cookies": {"{preferences}": {"raw": "garbage"}, "{legacy}": {"raw": "accepted"}, "{legacy_preferences}": {"raw": "{\"analytics\":true}"}},
+            "expected": {"valid": false, "necessary": false, "analytics": false, "marketing": false, "preferences": false}
+        },
+        {
+            "name": "current record takes precedence over legacy consent",
+            "cookies": {"{preferences}": {"json": {"version": "1.0", "status": "accepted", "age_days": 1, "categories": {"analytics": false}}}, "{legacy}": {"raw": "accepted"}, "{legacy_preferences}": {"raw": "{\"analytics\":true}"}},
+            "expected": {"valid": true, "necessary": true, "analytics": false, "marketing": false, "preferences": false}
+        }
+    ]
+}
