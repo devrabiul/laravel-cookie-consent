@@ -42,6 +42,11 @@ class CookieConsentServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/config/laravel-cookie-consent.php' => config_path('laravel-cookie-consent.php'),
         ]);
+
+        // The AI agent skill is installed with a command rather than publishes(): a
+        // `vendor:publish --provider=...` would otherwise also create .claude/ and
+        // .agents/ folders in every application.
+        $this->commands([Commands\InstallSkillsCommand::class]);
     }
 
     private function registerResources(): void

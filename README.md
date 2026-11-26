@@ -26,6 +26,7 @@ capabilities.
 - 📈 **Google Consent Mode v2** – Works with gtag.js, Google Tag Manager, GA4 and Google Ads
 - 🍪 **Floating Cookie Settings Button** – Lets visitors change or withdraw consent at any time
 - 🔁 **SPA Support** – Livewire `wire:navigate`, Turbo / Hotwire and Inertia
+- 🤖 **AI Agent Skill** – Teaches Claude Code, Google Antigravity and Laravel Boost agents how to use the package
 
 ---
 
@@ -550,6 +551,31 @@ For other client-side routers, call `window.initCookieConsent()` after each page
 > The server-side checks (`hasConsent()`, `@cookieConsent`) run when a page is rendered on the server. Pages fetched
 > by Livewire or Inertia requests are evaluated with the consent cookies of that request, but content already on the
 > page does not change when the visitor makes a choice – use the JavaScript events or `js_action` for that.
+
+---
+
+## AI Agent Skill (Claude Code, Google Antigravity, Laravel Boost)
+
+The package ships an [Agent Skill](https://agentskills.io) that teaches AI coding agents how to set up the banner,
+gate tracking scripts behind consent, use `hasConsent()` / `@cookieConsent`, enable Google Consent Mode and avoid
+common mistakes. The agent loads it only when a task involves cookie consent.
+
+**Laravel Boost** – run `php artisan boost:install` and select `devrabiul/laravel-cookie-consent` when asked
+*"Which third-party AI guidelines/skills would you like to install?"*. Boost then installs the skill for all your
+agents and keeps it up to date with `php artisan boost:update`. (Boost stores your choice in the `packages` list of
+`boost.json`.)
+
+**Without Boost** – copy the skill into your project:
+
+```bash
+php artisan cookie-consent:skills                 # Claude Code and Google Antigravity
+php artisan cookie-consent:skills --claude        # only .claude/skills/laravel-cookie-consent
+php artisan cookie-consent:skills --antigravity   # only .agents/skills/laravel-cookie-consent
+php artisan cookie-consent:skills --force         # overwrite, e.g. after updating the package
+```
+
+Commit the created folder so everyone on your team gets the skill. Existing files are not overwritten unless you
+pass `--force`.
 
 ---
 
