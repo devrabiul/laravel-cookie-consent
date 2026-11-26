@@ -59,6 +59,13 @@ composer require devrabiul/laravel-cookie-consent
 php artisan vendor:publish --provider="Devrabiul\CookieConsent\CookieConsentServiceProvider"
 ```
 
+3. Optional – install the [AI agent skill](#ai-agent-skill-claude-code-google-antigravity-laravel-boost) for Claude
+   Code and Google Antigravity (Laravel Boost users can select the package in `boost:install` instead):
+
+```bash
+php artisan cookie-consent:skills
+```
+
 ## Basic Usage
 
 Include these components in your Blade templates:
@@ -624,6 +631,20 @@ Experience the magic of CookieConsent and enhance your Laravel applications with
 🔗 **GitHub:** [Laravel Cookie Consent](https://github.com/devrabiul/laravel-cookie-consent)  
 🔗 **Packagist:
 ** [https://packagist.org/packages/devrabiul/laravel-cookie-consent](https://packagist.org/packages/devrabiul/laravel-cookie-consent)
+
+## Upgrading to v2.3
+
+- **No breaking changes.** Run `composer update devrabiul/laravel-cookie-consent`; there is nothing to change in
+  your config or views.
+- **New: AI agent skill** for Claude Code, Google Antigravity and Laravel Boost. Install it with
+  `php artisan cookie-consent:skills`, or select `devrabiul/laravel-cookie-consent` in `php artisan boost:install`
+  (see [AI Agent Skill](#ai-agent-skill-claude-code-google-antigravity-laravel-boost)).
+- **`vendor:publish` is unchanged.** It still publishes only the config file; the skill is added to your project only
+  when you run one of the commands above.
+- **After updating the package**, refresh an installed skill with `php artisan cookie-consent:skills --force`
+  (or `php artisan boost:update` with Boost).
+
+---
 
 ## Upgrading to v2.2
 
