@@ -34,6 +34,13 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
 
+      # Composer refuses to install versions affected by security advisories, which now
+      # covers every Laravel 8–11 release. The matrix deliberately tests the package
+      # against those versions, so allow them here. This affects CI only, never the
+      # applications that install the package.
+      - name: Allow framework versions with security advisories
+        run: composer config policy.advisories.block false
+
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-interaction --no-update
